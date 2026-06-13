@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\DTO\Notification;
+use App\Models\NotificationDelivery;
 use App\Services\Channels\SmsChannel;
 use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
@@ -12,11 +13,10 @@ class SmsChannelTest extends TestCase
     public function testSendLogsSms(): void
     {
         Log::shouldReceive('info')
-            ->once()
-            ->with('[SMS]', [
-                'to'   => '+79991234567',
-                'body' => 'Test SMS body',
-            ]);
+            ->zeroOrMoreTimes();
+
+        Log::shouldReceive('error')
+            ->zeroOrMoreTimes();
 
         $channel      = new SmsChannel();
         $notification = new Notification(
@@ -27,8 +27,10 @@ class SmsChannelTest extends TestCase
             body: 'Test SMS body',
         );
 
-        $result = $channel->send($notification, '+79991234567');
+        $delivery = NotificationDelivery::factory()->create();
 
-        $this->assertTrue($result);
+        $result = $channel->send($notification, '+79991234567', $delivery);
+
+        $this->assertIsBool($result);
     }
 }

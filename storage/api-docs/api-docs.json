@@ -1,0 +1,259 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Smart Logistics — Notification Service API",
+        "description": "API для отправки уведомлений через SMS и Email с использованием мок-провайдеров.",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "/api",
+            "description": "API base URL"
+        }
+    ],
+    "paths": {
+        "/notifications/send": {
+            "post": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Send a notification",
+                "description": "Send a notification via the specified channel.\n\nTransactional notifications are sent synchronously (high priority).\nMarketing notifications are queued and processed asynchronously.",
+                "operationId": "e503c9bb99880f57195770d4c1aa76b8",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SendNotificationRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Notification sent or queued successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SendNotificationResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Validation failed"
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Some notifications failed to send",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SendNotificationResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/notifications/status/{uuid}": {
+            "get": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Get delivery status",
+                "description": "Get delivery status by UUID.",
+                "operationId": "e2629394d2ad97c5a89c08d756774403",
+                "parameters": [
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "description": "Delivery UUID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Delivery status",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DeliveryStatusResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Delivery not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Notification delivery not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "SendNotificationRequest": {
+                "description": "Request body for sending a notification",
+                "required": [
+                    "category",
+                    "type",
+                    "recipients",
+                    "subject",
+                    "body"
+                ],
+                "properties": {
+                    "category": {
+                        "description": "Notification category",
+                        "type": "string",
+                        "enum": [
+                            "transaction",
+                            "marketing"
+                        ]
+                    },
+                    "type": {
+                        "description": "Delivery channel",
+                        "type": "string",
+                        "enum": [
+                            "sms",
+                            "email"
+                        ]
+                    },
+                    "recipients": {
+                        "description": "List of recipients",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "subject": {
+                        "description": "Notification subject",
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "body": {
+                        "description": "Notification body",
+                        "type": "string"
+                    },
+                    "data": {
+                        "description": "Additional data",
+                        "type": "object",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "SendNotificationResponse": {
+                "description": "Response for sending a notification",
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "errors": {
+                        "description": "Per-recipient errors (if any)",
+                        "type": "object",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "DeliveryStatusResponse": {
+                "description": "Delivery status response",
+                "properties": {
+                    "uuid": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "pending",
+                            "sent",
+                            "failed"
+                        ]
+                    },
+                    "recipient": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "sms",
+                            "email"
+                        ]
+                    },
+                    "category": {
+                        "type": "string",
+                        "enum": [
+                            "transaction",
+                            "marketing"
+                        ]
+                    },
+                    "error_message": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Notifications",
+            "description": "Notifications"
+        }
+    ]
+}

@@ -18,7 +18,13 @@ class NotificationDeliveryFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'type'          => 'email',
+            'category'      => 'general',
+            'recipient'     => fake()->email(),
+            'subject'       => fake()->sentence(),
+            'body'          => fake()->text(),
+            'status'        => 'pending',
+            'error_message' => null,
         ];
     }
 }
