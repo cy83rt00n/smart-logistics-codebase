@@ -18,7 +18,7 @@ use OpenApi\Attributes as OA;
     description: 'API для отправки уведомлений через SMS и Email с использованием мок-провайдеров.',
 )]
 #[OA\Server(
-    url: '/api',
+    url: L5_SWAGGER_CONST_HOST . '/api',
     description: 'API base URL',
 )]
 #[OA\Schema(
